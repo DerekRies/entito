@@ -67,16 +67,10 @@
               init: function () {},
               update: function () {
                 var collection = game.activeScene.queryComponents(RenderQuery);
-                // console.log(collection);
                 ctx.fillStyle = 'black'
                 ctx.fillRect(0,0,w,h);
                 for(var i = 0 ; i < collection.length ; i++) {
                   var entity = collection[i];
-                  // ctx.beginPath();
-                  // ctx.arc(entity.Transform.x, entity.Transform.y, 0, 2*Math.PI, false);
-                  // ctx.fillStyle = entity.BasicRenderable.color;
-                  // ctx.fill();
-                  // ctx.closePath();
                   ctx.fillStyle = entity.BasicRenderable.color;
                   ctx.fillRect(entity.Transform.x, entity.Transform.y, entity.BasicRenderable.radius, entity.BasicRenderable.radius);
                 }
@@ -123,7 +117,7 @@
 
           scene.addSystem('MovementSystem', 0);
           scene.addSystem('RenderSystem', 0);
-          setup(1);
+          setup(10);
           update();
 
           ctx = canvas.getContext('2d');

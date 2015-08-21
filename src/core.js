@@ -6,6 +6,9 @@ var entito = (function () {
       this.width = width;
 
       this.definedComponentTypes = {};
+      this.numComponents = 0;
+      this.definedComponentTypeBits = {};
+
       this.definedSystemTypes = {};
       this.definedAssemblages = {};
       this.scenes = {};
@@ -24,6 +27,17 @@ var entito = (function () {
       else {
         this.definedComponentTypes[componentTypeName] = func();
       }
+      this.definedComponentTypeBits[componentTypeName] = Math.pow(2, this.numComponents);
+      this.numComponents++;
+      // console.log(this.definedComponentTypeBits);
+    };
+
+    Game.prototype.calcBitMask = function(components) {
+      var base = 0;
+      for (var i = 0; i < components.length; i++) {
+        base = base ^ this.definedComponentTypeBits[components[i]];
+      };
+      return base;
     };
 
     Game.prototype.defineSystem = function(systemTypeName, func) {
@@ -49,7 +63,6 @@ var entito = (function () {
       this.game = game;
       this.entityCounter = 0;
       this.livingEntities = [];
-      this.entityComponentBitmasks = [];
       var entitySize = 100;
       // Creates an array of dictionaries, each dictionary will have all the
       // componentTypes as keys, and the instance of that component type
@@ -57,6 +70,9 @@ var entito = (function () {
       this.entityComponentTable = Array.apply(null, Array(entitySize)).map(function () {
         return {};
       })
+      this.entityBitmasks = Array.apply(null, Array(entitySize)).map(function () {
+        return 0;
+      });
       this.systems = [];
       this.systemLength = 0;
       // this.pool = new Pool()
@@ -65,6 +81,12 @@ var entito = (function () {
     Scene.prototype._createComponentBitmaskForEntity = function(entity) {
       // Future Optimization
       // Creates the bitmask for which components are available on this entity
+      var base = 0;
+      for(var key in this.entityComponentTable[entity]) {
+        // console.log(key);
+        base = base ^ this.game.definedComponentTypeBits[key];
+      }
+      this.entityBitmasks[entity] = base;
     };
 
     Scene.prototype.start = function() {};
@@ -95,10 +117,12 @@ var entito = (function () {
       // Also returns that new component so that it can be chained.
       var component = new this.game.definedComponentTypes[componentType]();
       this.entityComponentTable[entity][componentType] = component;
+      this._createComponentBitmaskForEntity(entity);
       return component;
     };
     Scene.prototype.removeComponentFrom = function (componentType, entity) {
       delete this.entityComponentTable[entity][componentType];
+      this._createComponentBitmaskForEntity(entity);
     };
     Scene.prototype.addSystem = function (systemName, priority) {
       if(typeof priority !== 'number') {
@@ -123,17 +147,26 @@ var entito = (function () {
       var entityRow;
       var valid;
       var result = [];
-      for (var i = 0; i < l; i++) {
-        entityRow = this.entityComponentTable[i];
-        valid = true;
-        for (var j = 0; j < listOfComponents.length; j++) {
-          if(!entityRow.hasOwnProperty(listOfComponents[j])){
-            valid = false;
-            break;
-          }
-        }
-        if(valid) {
-          result.push(entityRow);
+      // Original Solution:
+      // for (var i = 0; i < l; i++) {
+      //   entityRow = this.entityComponentTable[i];
+      //   valid = true;
+      //   for (var j = 0; j < listOfComponents.length; j++) {
+      //     if(!entityRow.hasOwnProperty(listOfComponents[j])){
+      //       valid = false;
+      //       break;
+      //     }
+      //   }
+      //   if(valid) {
+      //     result.push(entityRow);
+      //   }
+      // }
+      
+      // Bitmask Solution:
+      var queryBitMask = this.game.calcBitMask(listOfComponents);
+      for (var i = 0; i < l ; i++) {
+        if((this.entityBitmasks[i] & queryBitMask) === queryBitMask) {
+          result.push(this.entityComponentTable[i]);
         }
       }
       return result;

@@ -140,7 +140,7 @@ describe('Core Functionality', function () {
           // this function is called every scene update frame
           c = game.activeScene.queryComponents(['transform'])
           for(var i = 0; i < c.length ; i++) {
-            console.log(c[i].transform);
+            // console.log(c[i].transform);
           }
         }
       };
@@ -155,16 +155,42 @@ describe('Core Functionality', function () {
     pScene.addSystem('FakeSys1', 3);
     pScene.addSystem('FakeSys2', 0);
     pScene.addSystem('FakeSys3');
-    console.log(pScene.systems);
+    // console.log(pScene.systems);
     var prios = _.map(pScene.systems, function (system) {
       return system.priority;
     })
-    console.log(prios);
+    // console.log(prios);
     expect(prios).toEqual([0,1,3]);
   });
 
-  // it('should create appropriate bitmasks for attached (or dependency) components', function () {
+  it('should create appropriate bitmasks for attached (or dependency) components', function () {
+    game.defineComponent('velocity');
+    game.defineComponent('magnetic');
+    game.defineComponent('sprite');
+    game.defineComponent('another');
+    game.defineComponent('random');
+    game.defineComponent('thing');
 
-  // });
+    var sampleBitMask = game.calcBitMask(['velocity', 'magnetic', 'sprite']);
+    var systemBitMask = game.calcBitMask(['magnetic', 'velocity']);
+    var systemBitMask2 = game.calcBitMask(['transform', 'velocity']);
+    expect(sampleBitMask & systemBitMask).toBe(systemBitMask);
+    expect(sampleBitMask & systemBitMask2).not.toBe(systemBitMask2);
+  });
+
+  it('should create bitmask for an entity to indicate which components are attached and which arent', function () {
+    // Invisible Entity, should be picked up by the magnetic system query but
+    // not by the render system query
+    var e = game.activeScene.createEntity();
+    game.activeScene.attachComponentTo('magnetic', e);
+    game.activeScene.attachComponentTo('velocity', e);
+    game.activeScene.attachComponentTo('transform', e);
+    // game.activeScene._createComponentBitmaskForEntity(e);
+    var systemBitMask = game.calcBitMask(['magnetic', 'velocity']);
+    var systemBitMask2 = game.calcBitMask(['sprite', 'velocity']);
+    var ebitmask = game.activeScene.entityBitmasks[e];
+    expect(ebitmask & systemBitMask).toBe(systemBitMask);
+    expect(ebitmask & systemBitMask2).not.toBe(systemBitMask2);
+  });
 
 });
