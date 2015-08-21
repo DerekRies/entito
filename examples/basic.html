@@ -62,10 +62,11 @@
             var ctx = game.canvas.getContext('2d');
             var w = game.canvas.width;
             var h = game.canvas.height;
+            var RenderQuery = ['Transform', 'BasicRenderable'];
             return {
               init: function () {},
               update: function () {
-                var collection = game.activeScene.queryComponents(['Transform', 'BasicRenderable']);
+                var collection = game.activeScene.queryComponents(RenderQuery);
                 // console.log(collection);
                 ctx.fillStyle = 'black'
                 ctx.fillRect(0,0,w,h);
@@ -83,6 +84,21 @@
             };
           });
 
+          game.defineSystem('MovementSystem', function (game) {
+            var MoveQuery = ['Transform', 'Velocity'];
+            return {
+              init: function () {},
+              update: function (dx) {
+                var collection = game.activeScene.queryComponents(MoveQuery);
+                for (var i = 0; i < collection.length; i++) {
+                  collection[i].Transform.x += collection[i].Velocity.x * dx;
+                  collection[i].Transform.y += collection[i].Velocity.y * dx;
+                  collection[i].Transform.z += collection[i].Velocity.z * dx;
+                };
+              }
+            }
+          });
+
           function rand(min, max) {
             return Math.round((Math.random() * (max - min)) + min);
           }
@@ -95,6 +111,8 @@
                 .setSize(50);
               scene.attachComponentTo('Transform', e)
                 .set(rand(0,canvas.width), rand(0,canvas.height), 0);
+              scene.attachComponentTo('Velocity', e)
+                .set(rand(-15,15),rand(-15,15));
             }
           }
 
@@ -103,6 +121,7 @@
               setTimeout(update, 16);
           }
 
+          scene.addSystem('MovementSystem', 0);
           scene.addSystem('RenderSystem', 0);
           setup(1);
           update();

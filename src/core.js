@@ -10,6 +10,7 @@ var entito = (function () {
       this.definedAssemblages = {};
       this.scenes = {};
       this.activeScene;
+      this.dx = 0.016;
     };
 
     Game.prototype.start = function() {
@@ -39,7 +40,7 @@ var entito = (function () {
       this.activeScene = this.scenes[sceneName];
     };
     Game.prototype.update = function() {
-      this.activeScene.update();
+      this.activeScene.update(this.dx);
     };
 
 
@@ -57,6 +58,7 @@ var entito = (function () {
         return {};
       })
       this.systems = [];
+      this.systemLength = 0;
       // this.pool = new Pool()
     };
 
@@ -69,9 +71,8 @@ var entito = (function () {
     Scene.prototype.stop = function() {};
     Scene.prototype.update = function(dx) {
       // go through all of the systems and call their update methods
-      var l = this.systems.length;
-      for (var i = 0; i < l; i++) {
-        this.systems[i].system.update();
+      for (var i = 0; i < this.systemLength; i++) {
+        this.systems[i].system.update(dx);
       };
     };
 
@@ -100,6 +101,7 @@ var entito = (function () {
       delete this.entityComponentTable[entity][componentType];
     };
     Scene.prototype.addSystem = function (systemName, priority) {
+      this.systemLength++;
       this.systems.push({system: this.game.definedSystemTypes[systemName], priority: priority});
     };
 
