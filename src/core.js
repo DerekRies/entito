@@ -75,7 +75,7 @@ var entito = (function () {
       });
       this.systems = [];
       this.systemLength = 0;
-      // this.pool = new Pool()
+      this.subscriptions = {};
     };
 
     Scene.prototype._createComponentBitmaskForEntity = function(entity) {
@@ -88,6 +88,26 @@ var entito = (function () {
       }
       this.entityBitmasks[entity] = base;
     };
+
+    Scene.prototype._fireCallbacks = function(component, componentType, callbackType) {
+      if(this.subscriptions.hasOwnProperty(componentType)){
+        for(var i = 0; i < this.subscriptions[componentType].length ; i++) {
+          this.subscriptions[componentType][i][callbackType](component);
+        }
+      }
+    };
+
+    Scene.prototype.subscribe = function (componentType, addCallback, removeCallback) {
+      // Allows any system to subscribe to a specific componentType for additions and/or removals
+      if(!this.subscriptions.hasOwnProperty(componentType)){
+        this.subscriptions[componentType] = [];
+      }
+      this.subscriptions[componentType].push({add: addCallback, remove: removeCallback});
+    };
+    Scene.prototype.unsubscribe = function(componentType, addCallback, removeCallback) {
+
+    };
+
 
     Scene.prototype.start = function() {};
     Scene.prototype.stop = function() {};
@@ -118,9 +138,12 @@ var entito = (function () {
       var component = new this.game.definedComponentTypes[componentType]();
       this.entityComponentTable[entity][componentType] = component;
       this._createComponentBitmaskForEntity(entity);
+      this._fireCallbacks(component, componentType, 'add');
       return component;
     };
     Scene.prototype.removeComponentFrom = function (componentType, entity) {
+      var component = this.getComponentFromEntity(componentType, entity);
+      this._fireCallbacks(component, componentType, 'remove');
       delete this.entityComponentTable[entity][componentType];
       this._createComponentBitmaskForEntity(entity);
     };

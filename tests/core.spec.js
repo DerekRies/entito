@@ -193,4 +193,23 @@ describe('Core Functionality', function () {
     expect(ebitmask & systemBitMask2).not.toBe(systemBitMask2);
   });
 
+  it('should fire callbacks subscribed to the addition/removal of a certain component type', function () {
+    var addedComponents = 0;
+    game.activeScene.subscribe('transform', function (newComponent) {
+      // console.log('component added', newComponent);
+      addedComponents++;
+    }, function (removedComponent) {
+      // console.log('component removed', removedComponent);
+      addedComponents--;
+    });
+    var e = game.activeScene.createEntity();
+    var e2 = game.activeScene.createEntity();
+    game.activeScene.attachComponentTo('transform', e)
+      .set(200,200,0);
+    game.activeScene.attachComponentTo('transform', e2);
+    game.activeScene.removeComponentFrom('transform', e);
+    console.log(addedComponents);
+    expect(addedComponents).toBe(1);
+  });
+
 });
