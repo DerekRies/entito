@@ -1,0 +1,114 @@
+<html>
+    <head></head>
+    <body>
+        <canvas id="mycanvas" width="800" height="600"></canvas>
+        <script src="../src/core.js"></script>
+        <script>
+          var canvas = document.getElementById('mycanvas');
+          var game = new entito.Game(canvas, 800, 600);
+          var scene = new entito.Scene('Main Scene', game);
+          game.registerScene(scene);
+
+          game.defineComponent('Transform', function () {
+              var TransformComponent = function () {
+                  this.x = 0;
+                  this.y = 0;
+                  this.z = 0;
+                  this.rotation = 0;
+              };
+              TransformComponent.prototype.set = function(x, y, z) {
+                  this.x = x;
+                  this.y = y;
+                  this.z = z;
+                  return this;
+              };
+              TransformComponent.prototype.setRotation = function(theta) {
+                  this.rotation = theta;
+              };
+              return TransformComponent;
+          });
+
+          game.defineComponent('Velocity', function () {
+              var VelocityComponent = function () {
+                  this.x = 0;
+                  this.y = 0;
+                  this.z = 0;
+              }
+              VelocityComponent.prototype.set = function(x, y, z) {
+                  this.x = x;
+                  this.y = y;
+                  this.z = z;
+              };
+              return VelocityComponent;
+          });
+
+          game.defineComponent('BasicRenderable', function (){
+              var BasicRenderableComponent = function () {
+                  this.color = 'black';
+                  this.radius = 5;
+              };
+              BasicRenderableComponent.prototype.setColor = function (color) {
+                  this.color = color;
+                  return this;
+              };
+              BasicRenderableComponent.prototype.setSize = function (size) {
+                this.radius = size;
+                return this;
+              };
+              return BasicRenderableComponent;
+          });
+
+          game.defineSystem('RenderSystem', function (game) {
+            var ctx = game.canvas.getContext('2d');
+            var w = game.canvas.width;
+            var h = game.canvas.height;
+            return {
+              init: function () {},
+              update: function () {
+                var collection = game.activeScene.queryComponents(['Transform', 'BasicRenderable']);
+                // console.log(collection);
+                ctx.fillStyle = 'black'
+                ctx.fillRect(0,0,w,h);
+                for(var i = 0 ; i < collection.length ; i++) {
+                  var entity = collection[i];
+                  // ctx.beginPath();
+                  // ctx.arc(entity.Transform.x, entity.Transform.y, 0, 2*Math.PI, false);
+                  // ctx.fillStyle = entity.BasicRenderable.color;
+                  // ctx.fill();
+                  // ctx.closePath();
+                  ctx.fillStyle = entity.BasicRenderable.color;
+                  ctx.fillRect(entity.Transform.x, entity.Transform.y, entity.BasicRenderable.radius, entity.BasicRenderable.radius);
+                }
+              }
+            };
+          });
+
+          function rand(min, max) {
+            return Math.round((Math.random() * (max - min)) + min);
+          }
+
+          function setup (n) {
+            for(var i = 0; i < n ; i++) {
+              var e = scene.createEntity();
+              scene.attachComponentTo('BasicRenderable', e)
+                .setColor('blue')
+                .setSize(50);
+              scene.attachComponentTo('Transform', e)
+                .set(rand(0,canvas.width), rand(0,canvas.height), 0);
+            }
+          }
+
+          function update () {
+              game.update();
+              setTimeout(update, 16);
+          }
+
+          scene.addSystem('RenderSystem', 0);
+          setup(1);
+          update();
+
+          ctx = canvas.getContext('2d');
+
+        </script>
+    </body>
+</html>
