@@ -101,8 +101,20 @@ var entito = (function () {
       delete this.entityComponentTable[entity][componentType];
     };
     Scene.prototype.addSystem = function (systemName, priority) {
+      if(typeof priority !== 'number') {
+        priority = 1;
+      }
       this.systemLength++;
       this.systems.push({system: this.game.definedSystemTypes[systemName], priority: priority});
+      this.systems.sort(function (a, b) {
+        if (a.priority > b.priority) {
+          return 1;
+        }
+        if (a.priority < b.priority) {
+          return -1;
+        }
+        return 0;
+      });
     };
 
     Scene.prototype.queryComponents = function (listOfComponents) {

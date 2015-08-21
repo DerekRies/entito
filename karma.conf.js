@@ -3,6 +3,7 @@ module.exports = function (config) {
     basePath: '.',
     frameworks: ['jasmine'],
     files: [
+        'bower_components/lodash/lodash.js',
         'src/*.js',
         'tests/*.js'
     ],

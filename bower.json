@@ -1,0 +1,31 @@
+{
+  "name": "entito",
+  "version": "0.0.0",
+  "homepage": "https://github.com/DerekRies/entito",
+  "authors": [
+    "Derek Ries <influenztial@gmail.com>"
+  ],
+  "description": "A tiny entity-system game framework",
+  "main": "src/core.js",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "game",
+    "entity-system",
+    "entity",
+    "system"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "lodash": "~3.10.1"
+  }
+}

@@ -13,8 +13,30 @@ describe('Core Functionality', function () {
       return size;
   };
 
+  game = new entito.Game(canvas, 800, 600);
+
+  game.defineSystem('FakeSys1', function (game) {
+    return {
+      init: function () {},
+      update: function () {}
+    }
+  });
+
+  game.defineSystem('FakeSys2', function (game) {
+    return {
+      init: function () {},
+      update: function () {}
+    }
+  });
+
+  game.defineSystem('FakeSys3', function (game) {
+    return {
+      init: function () {},
+      update: function () {}
+    }
+  });
+
   it('creates a game and adds a scene', function () {
-    game = new entito.Game(canvas, 800, 600);
     scene = new entito.Scene('Main Menu', game);
     game.registerScene(scene);
     expect(game.activeScene.name).toBe('Main Menu');
@@ -79,7 +101,7 @@ describe('Core Functionality', function () {
   it('should remove an entire entity', function () {
     var allEntities = scene.getAllEntities();
     var initialLength = allEntities.length;
-    console.log(allEntities);
+    // console.log(allEntities);
     scene.removeEntity(2);
     var secondAllEntities = scene.getAllEntities();
     var secondLength = secondAllEntities.length;
@@ -124,9 +146,21 @@ describe('Core Functionality', function () {
       };
     });
     game.activeScene.addSystem('GenericSystem', 0);
-    console.log(game.activeScene);
     game.activeScene.update();
     expect(c.length).toBe(3);
+  });
+
+  it('should add systems with a priority', function () {
+    var pScene = new entito.Scene('Priority Test Scene', game);
+    pScene.addSystem('FakeSys1', 3);
+    pScene.addSystem('FakeSys2', 0);
+    pScene.addSystem('FakeSys3');
+    console.log(pScene.systems);
+    var prios = _.map(pScene.systems, function (system) {
+      return system.priority;
+    })
+    console.log(prios);
+    expect(prios).toEqual([0,1,3]);
   });
 
   // it('should create appropriate bitmasks for attached (or dependency) components', function () {
