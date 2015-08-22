@@ -17,7 +17,7 @@ describe('Core Functionality', function () {
 
   game.defineSystem('FakeSys1', function (game) {
     return {
-      init: function () {},
+      // init: function () {},
       update: function () {}
     }
   });

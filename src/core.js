@@ -27,9 +27,10 @@ var entito = (function () {
       else {
         this.definedComponentTypes[componentTypeName] = func();
       }
+      // 1,2,4,8,16...and so on for the component bit ids that will be used
+      // to create bitmasks for a series of components easily
       this.definedComponentTypeBits[componentTypeName] = Math.pow(2, this.numComponents);
       this.numComponents++;
-      // console.log(this.definedComponentTypeBits);
     };
 
     Game.prototype.calcBitMask = function(components) {
@@ -83,7 +84,6 @@ var entito = (function () {
       // Creates the bitmask for which components are available on this entity
       var base = 0;
       for(var key in this.entityComponentTable[entity]) {
-        // console.log(key);
         base = base ^ this.game.definedComponentTypeBits[key];
       }
       this.entityBitmasks[entity] = base;
@@ -148,11 +148,13 @@ var entito = (function () {
       this._createComponentBitmaskForEntity(entity);
     };
     Scene.prototype.addSystem = function (systemName, priority) {
+      var s = this.game.definedSystemTypes[systemName];
       if(typeof priority !== 'number') {
         priority = 1;
       }
       this.systemLength++;
-      this.systems.push({system: this.game.definedSystemTypes[systemName], priority: priority});
+      this.systems.push({system: s, priority: priority});
+      // Keep the systems sorted by their priority, lowest priority first
       this.systems.sort(function (a, b) {
         if (a.priority > b.priority) {
           return 1;
@@ -162,6 +164,9 @@ var entito = (function () {
         }
         return 0;
       });
+      if(typeof s.init === 'function'){
+        s.init();
+      }
     };
 
     Scene.prototype.queryComponents = function (listOfComponents) {
@@ -170,21 +175,7 @@ var entito = (function () {
       var entityRow;
       var valid;
       var result = [];
-      // Original Solution:
-      // for (var i = 0; i < l; i++) {
-      //   entityRow = this.entityComponentTable[i];
-      //   valid = true;
-      //   for (var j = 0; j < listOfComponents.length; j++) {
-      //     if(!entityRow.hasOwnProperty(listOfComponents[j])){
-      //       valid = false;
-      //       break;
-      //     }
-      //   }
-      //   if(valid) {
-      //     result.push(entityRow);
-      //   }
-      // }
-      
+
       // Bitmask Solution:
       var queryBitMask = this.game.calcBitMask(listOfComponents);
       for (var i = 0; i < l ; i++) {
