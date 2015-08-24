@@ -254,6 +254,7 @@ var entito = (function () {
     return {
       Game: Game,
       Scene: Scene,
+      version: '0.1.0'
     };
 
 })();
