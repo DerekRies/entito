@@ -15,6 +15,7 @@ var entito = (function () {
       this.scenes = {};
       this.activeScene;
       this.dx = 0.016;
+      this.subscriptions = {};
     };
 
     Game.prototype.configurePools = function(size) {
@@ -86,6 +87,16 @@ var entito = (function () {
     Game.prototype.update = function() {
       this.activeScene.update(this.dx);
     };
+    Game.prototype.subscribe = function (componentType, addCallback, removeCallback) {
+      // Allows any system to subscribe to a specific componentType for additions and/or removals
+      if(!this.subscriptions.hasOwnProperty(componentType)){
+        this.subscriptions[componentType] = [];
+      }
+      this.subscriptions[componentType].push({add: addCallback, remove: removeCallback});
+    };
+    Game.prototype.unsubscribe = function(componentType, addCallback, removeCallback) {
+
+    };
 
 
 
@@ -108,7 +119,6 @@ var entito = (function () {
 
       this.systems = [];
       this.systemLength = 0;
-      this.subscriptions = {};
     };
 
     Scene.prototype._createComponentBitmaskForEntity = function(entity) {
@@ -122,22 +132,12 @@ var entito = (function () {
     };
 
     Scene.prototype._fireCallbacks = function(component, componentType, callbackType) {
-      if(this.subscriptions.hasOwnProperty(componentType)){
-        for(var i = 0; i < this.subscriptions[componentType].length ; i++) {
-          this.subscriptions[componentType][i][callbackType](component);
+      var subs = this.game.subscriptions;
+      if(subs.hasOwnProperty(componentType)){
+        for(var i = 0; i < subs[componentType].length ; i++) {
+          subs[componentType][i][callbackType](component, this);
         }
       }
-    };
-
-    Scene.prototype.subscribe = function (componentType, addCallback, removeCallback) {
-      // Allows any system to subscribe to a specific componentType for additions and/or removals
-      if(!this.subscriptions.hasOwnProperty(componentType)){
-        this.subscriptions[componentType] = [];
-      }
-      this.subscriptions[componentType].push({add: addCallback, remove: removeCallback});
-    };
-    Scene.prototype.unsubscribe = function(componentType, addCallback, removeCallback) {
-
     };
 
     Scene.prototype.update = function(dx) {

@@ -198,10 +198,10 @@ describe('Core Functionality', function () {
 
   it('should fire callbacks subscribed to the addition/removal of a certain component type', function () {
     var addedComponents = 0;
-    game.activeScene.subscribe('transform', function (newComponent) {
+    game.subscribe('transform', function (newComponent, scene) {
       // console.log('component added', newComponent);
       addedComponents++;
-    }, function (removedComponent) {
+    }, function (removedComponent, scene) {
       // console.log('component removed', removedComponent);
       addedComponents--;
     });
