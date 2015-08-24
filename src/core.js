@@ -1,3 +1,6 @@
+"use strict";
+
+
 var entito = (function () {
 
     var Game = function (canvas, width, height) {
