@@ -8,8 +8,6 @@
         <script>
           var canvas = document.getElementById('mycanvas');
           var game = new entito.Game(canvas, 800, 600);
-          var scene = new entito.Scene('Main Scene', game);
-          game.registerScene(scene);
 
           game.defineComponent('Transform', function () {
               var TransformComponent = function () {
@@ -133,7 +131,7 @@
                 .setColor('blue')
                 .setSize(50);
               scene.attachComponentTo('Transform', e)
-                .set(rand(0,canvas.width), rand(0,canvas.height), 0);
+                .set(rand(0,canvas.width-50), rand(0,canvas.height-50), 0);
               scene.attachComponentTo('Velocity', e)
                 .set(rand(-15,15),rand(-15,15));
               scene.attachComponentTo('Boundable', e);
@@ -144,6 +142,10 @@
               game.update();
               setTimeout(update, 16);
           }
+
+          game.configurePools(50);
+          var scene = new entito.Scene('Main Scene', game);
+          game.registerScene(scene);
 
           scene.addSystem('BoundableSystem', 0);
           scene.addSystem('MovementSystem', 1);

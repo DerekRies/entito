@@ -36,6 +36,13 @@ describe('Core Functionality', function () {
     }
   });
 
+    game.defineComponent('velocity');
+    game.defineComponent('magnetic');
+    game.defineComponent('sprite');
+    game.defineComponent('another');
+    game.defineComponent('random');
+    game.defineComponent('thing');
+
   it('creates a game and adds a scene', function () {
     scene = new entito.Scene('Main Menu', game);
     game.registerScene(scene);
@@ -64,8 +71,9 @@ describe('Core Functionality', function () {
       return transformComponent;
     });
     expect(typeof game.definedComponentTypes['transform']).toBe('function');
+    expect(Object.size(game.definedComponentTypes)).toBe(7);
     game.defineComponent('player')
-    expect(Object.size(game.definedComponentTypes)).toBe(2);
+    expect(Object.size(game.definedComponentTypes)).toBe(8);
   });
 
   it('should attach a component to an entity and retrieve those components on the entity', function () {
@@ -164,12 +172,7 @@ describe('Core Functionality', function () {
   });
 
   it('should create appropriate bitmasks for attached (or dependency) components', function () {
-    game.defineComponent('velocity');
-    game.defineComponent('magnetic');
-    game.defineComponent('sprite');
-    game.defineComponent('another');
-    game.defineComponent('random');
-    game.defineComponent('thing');
+
 
     var sampleBitMask = game.calcBitMask(['velocity', 'magnetic', 'sprite']);
     var systemBitMask = game.calcBitMask(['magnetic', 'velocity']);

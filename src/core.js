@@ -8,12 +8,40 @@ var entito = (function () {
       this.definedComponentTypes = {};
       this.numComponents = 0;
       this.definedComponentTypeBits = {};
+      this.componentPool = {};
 
       this.definedSystemTypes = {};
       this.definedAssemblages = {};
       this.scenes = {};
       this.activeScene;
       this.dx = 0.016;
+    };
+
+    Game.prototype.configurePools = function(size) {
+      var componentTypes = Object.keys(this.definedComponentTypes);
+      for(var i = 0; i < this.numComponents ; i++) {
+        this._constructComponentPool(componentTypes[i], size);
+      }
+      console.log(name, componentTypes);
+    };
+
+    Game.prototype._constructComponentPool = function(componentType, size) {
+      // body...
+      var game = this;
+      this.componentPool[componentType] = Array.apply(null, Array(size)).map(function () {
+          return new game.definedComponentTypes[componentType]();
+      });
+    };
+
+    Game.prototype.makeComponent = function(type) {
+      // If there is a component pool and it's not empty then reuse a component
+      // otherwise make a new one.
+      if(this.componentPool.hasOwnProperty(type)){
+        if(this.componentPool[type].length > 0) {
+          return this.componentPool[type].pop();
+        }
+      }
+      return new this.definedComponentTypes[type]();;
     };
 
     Game.prototype.start = function() {
@@ -27,6 +55,7 @@ var entito = (function () {
       else {
         this.definedComponentTypes[componentTypeName] = func();
       }
+      this.definedComponentTypes[componentTypeName].prototype.type = componentTypeName;
       // 1,2,4,8,16...and so on for the component bit ids that will be used
       // to create bitmasks for a series of components easily
       this.definedComponentTypeBits[componentTypeName] = Math.pow(2, this.numComponents);
@@ -59,9 +88,11 @@ var entito = (function () {
     };
 
 
+
     var Scene = function (name, game) {
       this.name = name;
       this.game = game;
+
       this.entityCounter = 0;
       this.livingEntities = [];
       var entitySize = 100;
@@ -70,10 +101,11 @@ var entito = (function () {
       // currently attached to the entity.
       this.entityComponentTable = Array.apply(null, Array(entitySize)).map(function () {
         return {};
-      })
+      });
       this.entityBitmasks = Array.apply(null, Array(entitySize)).map(function () {
         return 0;
       });
+
       this.systems = [];
       this.systemLength = 0;
       this.subscriptions = {};
@@ -108,9 +140,6 @@ var entito = (function () {
 
     };
 
-
-    Scene.prototype.start = function() {};
-    Scene.prototype.stop = function() {};
     Scene.prototype.update = function(dx) {
       // go through all of the systems and call their update methods
       for (var i = 0; i < this.systemLength; i++) {
@@ -123,6 +152,7 @@ var entito = (function () {
     };
 
     Scene.prototype.createEntity = function(optionalDebugName) {
+      // TODO: Pool Entities that are created and then destroyed
       this.livingEntities.push(this.entityCounter);
       return this.entityCounter++;
     };
@@ -135,15 +165,36 @@ var entito = (function () {
     Scene.prototype.attachComponentTo = function (componentType, entity) {
       // Adds a new component of the type specified to the entity
       // Also returns that new component so that it can be chained.
-      var component = new this.game.definedComponentTypes[componentType]();
+
+      // Without component pooling
+      // var component = new this.game.definedComponentTypes[componentType]();
+      // With component pooling
+      var component = this.game.makeComponent(componentType);
+
       this.entityComponentTable[entity][componentType] = component;
       this._createComponentBitmaskForEntity(entity);
       this._fireCallbacks(component, componentType, 'add');
       return component;
     };
+
+    Scene.prototype._recycleComponent = function(component) {
+      // Recycling components should only work if there is a pool created
+      // for this component type. Pools are created manually atm, so not all
+      // games will use a pool.
+      if(this.game.componentPool.hasOwnProperty(component.type)){
+        console.log('component before recycle:');
+        console.log(component);
+        component.constructor();
+        this.game.componentPool[component.type].push(component);
+        console.log('component after recycle:');
+        console.log(component);
+      }
+    };
     Scene.prototype.removeComponentFrom = function (componentType, entity) {
+      // TODO: Recycle components when they get removed
       var component = this.getComponentFromEntity(componentType, entity);
       this._fireCallbacks(component, componentType, 'remove');
+      this._recycleComponent(component);
       delete this.entityComponentTable[entity][componentType];
       this._createComponentBitmaskForEntity(entity);
     };
@@ -174,6 +225,8 @@ var entito = (function () {
       var l = this.entityComponentTable.length;
       var entityRow;
       var valid;
+      // TODO: Remove the new array creation as this will be frequently called
+      // Probably can stay if the result for a unique query is cached
       var result = [];
 
       // Bitmask Solution:
